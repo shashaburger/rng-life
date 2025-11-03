@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ideology Slot Machine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .machine-container {
+            background: linear-gradient(145deg, #2d1b3d, #1a0f26);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #ffd700;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .slots-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .slot-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slot {
+            background: #1a1a2e;
+            border: 4px solid #ffd700;
+            border-radius: 15px;
+            width: 200px;
+            height: 220px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .slot-label {
+            color: #ffd700;
+            font-weight: bold;
+            font-size: 1.1em;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            text-align: center;
+        }
+
+        .slot-items {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            transition: transform 0.1s linear;
+        }
+
+        .slot-item {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            color: white;
+            font-size: 1.1em;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .slot-window {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 80px;
+            border: 3px solid rgba(255, 215, 0, 0.5);
+            border-radius: 10px;
+            pointer-events: none;
+            background: rgba(255, 215, 0, 0.1);
+            margin-top: 5px;
+        }
+
+        .spin-button {
+            display: block;
+            margin: 0 auto;
+            padding: 20px 60px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #1a0f26;
+            background: linear-gradient(145deg, #ffd700, #ffed4e);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .spin-button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.6);
+        }
+
+        .spin-button:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .spin-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            min-height: 100px;
+            display: none;
+        }
+
+        .result-container.show {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .result-title {
+            color: #ffd700;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .result-text {
+            color: #ffffff;
+            font-size: 1.1em;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            color: #ffd700;
+            font-size: 1.2em;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 40px rgba(255, 215, 0, 0.8);
+            }
+        }
+
+        .slot.spinning {
+            animation: glow 0.5s ease-in-out infinite;
+        }
+
+        @media (max-width: 768px) {
+            .slots-container {
+                flex-wrap: wrap;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .slot {
+                width: 150px;
+                height: 220px;
+            }
+
+            .slot-item {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="machine-container">
+        <h1>🎰 RANDOM PICKER 🎰</h1>
+
+        <div class="slots-container">
+            <div class="slot-wrapper">
+                <div class="slot-label">IDEOLOGY</div>
+                <div class="slot" id="slot1">
+                    <div class="slot-items" id="items1"></div>
+                    <div class="slot-window"></div>
+                </div>
+            </div>
+
+            <div class="slot-wrapper">
+                <div class="slot-label">RELIGION</div>
+                <div class="slot" id="slot2">
+                    <div class="slot-items" id="items2"></div>
+                    <div class="slot-window"></div>
+                </div>
+            </div>
+
+            <div class="slot-wrapper">
+                <div class="slot-label">CHEESE</div>
+                <div class="slot" id="slot3">
+                    <div class="slot-items" id="items3"></div>
+                    <div class="slot-window"></div>
+                </div>
+            </div>
+        </div>
+
+        <button class="spin-button" id="spinBtn">SPIN!</button>
+
+        <div class="result-container" id="resultContainer">
+            <div class="result-title">🎲 Your Combination 🎲</div>
+            <div class="result-text" id="resultText"></div>
+        </div>
+    </div>
+
+    <script>
+        const ideologies = [
+            'Capitalism', 'Socialism', 'Liberalism', 'Conservatism',
+            'Anarchism', 'Libertarianism', 'Communism', 'Fascism',
+            'Progressivism', 'Nationalism', 'Federalism', 'Monarchism'
+        ];
+
+        const religions = [
+            'Christianity', 'Islam', 'Hinduism', 'Buddhism',
+            'Judaism', 'Sikhism', 'Taoism', 'Shinto',
+            'Jainism', 'Zoroastrianism', 'Confucianism', 'Baha\'i'
+        ];
+
+        const cheeses = [
+            'Cheddar', 'Brie', 'Gouda', 'Parmesan',
+            'Mozzarella', 'Swiss', 'Blue Cheese', 'Camembert',
+            'Feta', 'Provolone', 'Manchego', 'Gruyere'
+        ];
+
+        const data = [ideologies, religions, cheeses];
+        let spinning = false;
+
+        function createSlotItems(slotId, items) {
+            const container = document.getElementById(`items${slotId}`);
+            const extendedItems = [...items, ...items, ...items];
+
+            extendedItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'slot-item';
+                div.textContent = item;
+                container.appendChild(div);
+            });
+        }
+
+        function spinSlot(slotId, items, duration) {
+            return new Promise(resolve => {
+                const slot = document.getElementById(`slot${slotId}`);
+                const itemsContainer = document.getElementById(`items${slotId}`);
+                const itemHeight = 80;
+
+                slot.classList.add('spinning');
+
+                let position = 0;
+                let speed = 20;
+                const startTime = Date.now();
+
+                const animate = () => {
+                    const elapsed = Date.now() - startTime;
+                    const progress = elapsed / duration;
+
+                    if (progress < 1) {
+                        position += speed;
+                        if (position >= itemHeight * items.length) {
+                            position = 0;
+                        }
+                        itemsContainer.style.transform = `translateY(-${position}px)`;
+                        requestAnimationFrame(animate);
+                    } else {
+                        const finalIndex = Math.floor(Math.random() * items.length);
+                        const finalPosition = finalIndex * itemHeight;
+                        itemsContainer.style.transform = `translateY(-${finalPosition}px)`;
+                        itemsContainer.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+
+                        setTimeout(() => {
+                            slot.classList.remove('spinning');
+                            itemsContainer.style.transition = 'transform 0.1s linear';
+                            resolve(items[finalIndex]);
+                        }, 500);
+                    }
+                };
+
+                animate();
+            });
+        }
+
+        async function spin() {
+            if (spinning) return;
+
+            spinning = true;
+            document.getElementById('spinBtn').disabled = true;
+            document.getElementById('resultContainer').classList.remove('show');
+
+            const durations = [2000, 2500, 3000];
+
+            const promises = data.map((items, index) =>
+                spinSlot(index + 1, items, durations[index])
+            );
+
+            const results = await Promise.all(promises);
+
+            // Send to AI API
+            await analyzeCombo(results[0], results[1], results[2]);
+
+            spinning = false;
+            document.getElementById('spinBtn').disabled = false;
+        }
+
+        async function analyzeCombo(ideology, religion, cheese) {
+            const resultContainer = document.getElementById('resultContainer');
+            const resultText = document.getElementById('resultText');
+
+            resultContainer.classList.add('show');
+            resultText.innerHTML = '<div class="loading">🤔 Analyzing your unique combination...</div>';
+
+            try {
+                // Replace this URL with your actual AI API endpoint
+                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': 'YOUR_API_KEY_HERE', // Replace with your API key
+                        'anthropic-version': '2023-06-01'
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-sonnet-4-5-20250929',
+                        max_tokens: 300,
+                        messages: [{
+                            role: 'user',
+                            content: `Give me a creative, humorous, and insightful analysis of this random combination in 2-3 sentences: ${ideology} ideology, ${religion} religion, and ${cheese} cheese. Make it entertaining!`
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('API request failed');
+                }
+
+                const data = await response.json();
+                const analysis = data.content[0].text;
+
+                resultText.innerHTML = `<strong>${ideology} + ${religion} + ${cheese}</strong><br><br>${analysis}`;
+            } catch (error) {
+                console.error('Error calling AI API:', error);
+                // Fallback to local funny responses
+                const fallbackMessages = [
+                    `A ${ideology} believer practicing ${religion} while enjoying ${cheese}? That's a combination that would make for interesting dinner conversations!`,
+                    `${religion} and ${ideology} meet over a plate of ${cheese}. Philosophers would debate this for centuries!`,
+                    `The holy trinity of randomness: ${ideology}, ${religion}, and ${cheese}. Somewhere, a cheese monk is nodding approvingly.`,
+                    `${cheese} is the great unifier between ${ideology} and ${religion}. After all, everyone loves good cheese!`,
+                    `Imagine a ${religion} practitioner discussing ${ideology} economics at a ${cheese} tasting. Now that's a party!`
+                ];
+
+                const randomMessage = fallbackMessages[Math.floor(Math.random() * fallbackMessages.length)];
+                resultText.innerHTML = `<strong>${ideology} + ${religion} + ${cheese}</strong><br><br>${randomMessage}`;
+            }
+        }
+
+        createSlotItems(1, ideologies);
+        createSlotItems(2, religions);
+        createSlotItems(3, cheeses);
+
+        document.getElementById('spinBtn').addEventListener('click', spin);
+    </script>
+</body>
+
+</html>
